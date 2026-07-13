@@ -6,10 +6,15 @@ import { getWorkspaceBySlug, listMembers } from "@/lib/data/workspaces";
 import { getProjectByKey } from "@/lib/data/projects";
 import { getIssueByNumber } from "@/lib/data/issues";
 import { listLabels } from "@/lib/data/labels";
+import { listComments } from "@/lib/data/comments";
+import { listActivity } from "@/lib/data/activity";
+import { getMyProfile } from "@/lib/data/profiles";
 import { PageShell } from "@/components/shared/page";
+import { Separator } from "@/components/ui/separator";
 import { Identifier } from "@/components/shared/identifier";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { IssueDetail } from "@/components/issue/issue-detail";
+import { IssueTimeline } from "@/components/issue/issue-timeline";
 
 type RouteParams = { slug: string; key: string; number: string };
 
@@ -59,10 +64,16 @@ export default async function IssuePage({ params }: { params: Promise<RouteParam
 
   const { workspace, issue } = loaded;
 
-  const [members, labels] = await Promise.all([
+  const [members, labels, comments, profile] = await Promise.all([
     listMembers(workspace.id),
     listLabels(workspace.id),
+    listComments(issue.id),
+    getMyProfile(),
   ]);
+
+  // Depends on `members`: the feed stores user ids for assignee changes, and needs
+  // names to turn them into "assigned this to Ada".
+  const activity = await listActivity(issue.id, members);
 
   return (
     // The same measure as the list it came from, so following a row into an issue
@@ -96,6 +107,21 @@ export default async function IssuePage({ params }: { params: Promise<RouteParam
 
       <div style={{ "--i": 1 } as React.CSSProperties} className="mt-8">
         <IssueDetail issue={issue} slug={slug} members={members} labels={labels} />
+      </div>
+
+      <div style={{ "--i": 2 } as React.CSSProperties} className="mt-10 space-y-10">
+        <Separator />
+
+        <IssueTimeline
+          comments={comments}
+          activity={activity}
+          workspaceId={workspace.id}
+          issueId={issue.id}
+          slug={slug}
+          projectKey={issue.projectKey}
+          number={issue.number}
+          currentUserName={profile?.display_name ?? "You"}
+        />
       </div>
     </PageShell>
   );

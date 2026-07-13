@@ -3,6 +3,7 @@
 // 'use client': these render server-action errors and pending state, which needs
 // useFormStatus.
 
+import { useId } from "react";
 import { useFormStatus } from "react-dom";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,18 +32,26 @@ export function FormField({
   errors?: string[];
   hint?: string;
 } & React.ComponentProps<"input">) {
-  const errorId = `${name}-error`;
-  const hintId = `${name}-hint`;
+  // useId, not the field's name.
+  //
+  // The name is not unique on a page: an issue's comment box and an open reply box
+  // are both `body`, and deriving the DOM id from the name would give them the same
+  // one. Every label would then point at whichever input the browser found first, and
+  // aria-describedby would announce the wrong error against the wrong box — a bug
+  // that is completely invisible unless you are the person relying on it.
+  const id = useId();
+  const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   const invalid = Boolean(errors?.length);
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={name} className="text-xs font-medium">
+      <Label htmlFor={id} className="text-xs font-medium">
         {label}
       </Label>
 
       <input
-        id={name}
+        id={id}
         name={name}
         aria-invalid={invalid || undefined}
         aria-describedby={
@@ -92,6 +101,7 @@ export function FormField({
 export function FormTextarea({
   name,
   label,
+  labelHidden,
   errors,
   hint,
   className,
@@ -99,21 +109,32 @@ export function FormTextarea({
 }: {
   name: string;
   label: string;
+  /**
+   * Hide the label visually, but keep it for screen readers.
+   *
+   * `sr-only`, never omitting the label — a textarea with no label is announced as
+   * "edit text, blank" and the user is left guessing. Some boxes genuinely do not
+   * need a visible caption (the comment composer says what it is through its avatar
+   * and its button), but "obvious from context" is a sighted person's judgement.
+   */
+  labelHidden?: boolean;
   errors?: string[];
   hint?: string;
 } & React.ComponentProps<"textarea">) {
-  const errorId = `${name}-error`;
-  const hintId = `${name}-hint`;
+  // See FormField: the id must be unique to this instance, not to the field name.
+  const id = useId();
+  const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   const invalid = Boolean(errors?.length);
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={name} className="text-xs font-medium">
+      <Label htmlFor={id} className={cn("text-xs font-medium", labelHidden && "sr-only")}>
         {label}
       </Label>
 
       <textarea
-        id={name}
+        id={id}
         name={name}
         aria-invalid={invalid || undefined}
         aria-describedby={

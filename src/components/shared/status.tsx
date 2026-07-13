@@ -1,29 +1,16 @@
 import { cn } from "@/lib/utils";
-import type { Database } from "@/lib/types/database.types";
+import type { IssuePriority, IssueStatus } from "@/lib/issue-display";
 
-type IssueStatus = Database["public"]["Enums"]["issue_status"];
-type IssuePriority = Database["public"]["Enums"]["issue_priority"];
-
-/**
- * The order every status control lists them in: the order work moves through, not
- * alphabetical. The board's columns are these, left to right.
- */
-export const ISSUE_STATUSES: readonly IssueStatus[] = [
-  "backlog",
-  "todo",
-  "in_progress",
-  "done",
-  "canceled",
-];
-
-/** Loudest first — a priority menu is opened to escalate far more often than to de-escalate. */
-export const ISSUE_PRIORITIES: readonly IssuePriority[] = [
-  "urgent",
-  "high",
-  "medium",
-  "low",
-  "none",
-];
+// The words — labels and ordering — live in `lib/issue-display`, because the server
+// builds activity sentences out of them and the data layer must not import from
+// `components/`. Re-exported here so a component that needs both an icon and its
+// label still has one import.
+export {
+  ISSUE_STATUSES,
+  ISSUE_PRIORITIES,
+  statusLabel,
+  priorityLabel,
+} from "@/lib/issue-display";
 
 /**
  * Status, drawn as a progress ring rather than a coloured dot.
@@ -38,20 +25,13 @@ export const ISSUE_PRIORITIES: readonly IssuePriority[] = [
  * state and there are no icon assets to keep in sync.
  */
 
-const STATUS_META: Record<
-  IssueStatus,
-  { label: string; className: string; fraction: number }
-> = {
-  backlog: { label: "Backlog", className: "text-status-backlog", fraction: 0 },
-  todo: { label: "Todo", className: "text-status-todo", fraction: 0 },
-  in_progress: { label: "In Progress", className: "text-status-progress", fraction: 0.5 },
-  done: { label: "Done", className: "text-status-done", fraction: 1 },
-  canceled: { label: "Canceled", className: "text-status-canceled", fraction: 1 },
+const STATUS_META: Record<IssueStatus, { className: string; fraction: number }> = {
+  backlog: { className: "text-status-backlog", fraction: 0 },
+  todo: { className: "text-status-todo", fraction: 0 },
+  in_progress: { className: "text-status-progress", fraction: 0.5 },
+  done: { className: "text-status-done", fraction: 1 },
+  canceled: { className: "text-status-canceled", fraction: 1 },
 };
-
-export function statusLabel(status: IssueStatus): string {
-  return STATUS_META[status].label;
-}
 
 export function StatusIcon({
   status,
@@ -130,18 +110,13 @@ export function StatusIcon({
  * colour, a board would read as noise — status is the headline, priority is a
  * whisper you only hear when you look for it.
  */
-const PRIORITY_META: Record<IssuePriority, { label: string; bars: number; className: string }> =
-  {
-    none: { label: "No priority", bars: 0, className: "text-muted-foreground/50" },
-    low: { label: "Low", bars: 1, className: "text-priority-low" },
-    medium: { label: "Medium", bars: 2, className: "text-priority-medium" },
-    high: { label: "High", bars: 3, className: "text-priority-high" },
-    urgent: { label: "Urgent", bars: 3, className: "text-priority-urgent" },
-  };
-
-export function priorityLabel(priority: IssuePriority): string {
-  return PRIORITY_META[priority].label;
-}
+const PRIORITY_META: Record<IssuePriority, { bars: number; className: string }> = {
+  none: { bars: 0, className: "text-muted-foreground/50" },
+  low: { bars: 1, className: "text-priority-low" },
+  medium: { bars: 2, className: "text-priority-medium" },
+  high: { bars: 3, className: "text-priority-high" },
+  urgent: { bars: 3, className: "text-priority-urgent" },
+};
 
 export function PriorityIcon({
   priority,
