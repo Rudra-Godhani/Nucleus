@@ -46,6 +46,7 @@ export function AppHeader({
         // page under /w/<slug>, including the project pages, and two tabs would
         // claim to be current at once.
         { href: `/w/${slug}`, label: "Overview", exact: true },
+        { href: `/w/${slug}/search`, label: "Search", exact: false },
         { href: `/w/${slug}/labels`, label: "Labels", exact: false },
         { href: `/w/${slug}/members`, label: "Members", exact: false },
       ]

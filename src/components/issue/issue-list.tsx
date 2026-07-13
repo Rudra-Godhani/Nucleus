@@ -23,7 +23,37 @@ import type { Issue } from "@/lib/data/issues";
  * Empty groups are dropped. A column of zeroes is noise; the board (next step) is
  * where an empty column is meaningful, because that is where you drop things into it.
  */
-export function IssueList({ issues, slug }: { issues: Issue[]; slug: string }) {
+export function IssueList({
+  issues,
+  slug,
+  grouped = true,
+}: {
+  issues: Issue[];
+  slug: string;
+  /**
+   * Group the rows by status.
+   *
+   * Off for search results, and that is not a style choice. Search hands back issues
+   * in RANK order — the best match first — and grouping them by status would sort that
+   * ordering away, quietly turning a ranked search into an unranked filter. The order
+   * the caller gives is the order that gets rendered.
+   */
+  grouped?: boolean;
+}) {
+  if (!grouped) {
+    return (
+      <ul className="border-border divide-border bg-card divide-y overflow-hidden rounded-xl border">
+        {issues.map((issue) => (
+          <li key={issue.id}>
+            {/* The status icon is on the row itself here — without a group heading
+                above it, it is the only thing saying what state the issue is in. */}
+            <IssueRow issue={issue} slug={slug} showStatus />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   const groups = ISSUE_STATUSES.map((status) => ({
     status,
     issues: issues.filter((issue) => issue.status === status),
@@ -55,19 +85,33 @@ export function IssueList({ issues, slug }: { issues: Issue[]; slug: string }) {
   );
 }
 
-function IssueRow({ issue, slug }: { issue: Issue; slug: string }) {
+function IssueRow({
+  issue,
+  slug,
+  showStatus,
+}: {
+  issue: Issue;
+  slug: string;
+  showStatus?: boolean;
+}) {
   return (
     <Link
       href={`/w/${slug}/p/${issue.projectKey}/${issue.number}`}
       className="hover:bg-accent/50 flex items-center gap-3 px-3 py-2.5 transition-colors duration-150"
     >
       {/*
-        The icons carry a title rather than a visible label — on a row this dense
-        there is no room for the word "Urgent", and the shape already says it. The
-        title is what makes them legible to a screen reader and on hover.
+        The icons carry a screen-reader label rather than a visible one — on a row this
+        dense there is no room for the word "Urgent", and the shape already says it.
       */}
       <PriorityIcon priority={issue.priority} />
       <span className="sr-only">{priorityLabel(issue.priority)}</span>
+
+      {showStatus ? (
+        <>
+          <StatusIcon status={issue.status} />
+          <span className="sr-only">{statusLabel(issue.status)}</span>
+        </>
+      ) : null}
 
       <Identifier className="text-muted-foreground w-16 shrink-0 text-xs">
         {issue.identifier}

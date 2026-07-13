@@ -291,6 +291,37 @@ export async function moveIssue(input: MoveIssueInput): Promise<void> {
   if (error) throw new Error(`Failed to move issue: ${error.message}`);
 }
 
+/**
+ * Full-text search across a workspace's issues.
+ *
+ * The work happens in Postgres — a GIN index over a generated tsvector, ranked so that
+ * a word in the title beats the same word in a description. See the issue_search
+ * migration for why it is an RPC and not a PostgREST filter (ordering by rank), and
+ * why the function must stay SECURITY INVOKER (RLS).
+ *
+ * `.select(ISSUE_SELECT)` on top of the RPC: PostgREST will embed relations into the
+ * result of a function that returns `setof issues`, so a search result is the same
+ * fully-populated Issue as a list row — same identifier, same labels, same assignee —
+ * rather than a thinner thing the UI has to special-case.
+ */
+export async function searchIssues(workspaceId: string, query: string): Promise<Issue[]> {
+  await requireUser();
+  const supabase = await createClient();
+
+  // An empty query is not a search, it is a page that has not been used yet. Asking
+  // the database to match nothing is a round trip for a guaranteed empty list.
+  if (query.trim() === "") return [];
+
+  const { data, error } = await supabase
+    .rpc("search_issues", { workspace: workspaceId, q: query })
+    .select(ISSUE_SELECT);
+
+  if (error) throw new Error(`Search failed: ${error.message}`);
+
+  // The RPC's ORDER BY survives the embed, so the rank order is preserved here.
+  return (data as unknown as IssueJoinRow[]).map(toIssue);
+}
+
 export async function deleteIssue(issueId: string): Promise<void> {
   await requireUser();
   const supabase = await createClient();

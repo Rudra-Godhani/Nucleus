@@ -113,11 +113,11 @@ export type Database = {
             referencedColumns: ["id", "workspace_id"]
           },
           {
-            foreignKeyName: "comments_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: "comments_parent_fkey"
+            columns: ["parent_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "comments"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
             foreignKeyName: "comments_workspace_id_fkey"
@@ -179,6 +179,7 @@ export type Database = {
           position: number
           priority: Database["public"]["Enums"]["issue_priority"]
           project_id: string
+          search_vector: unknown
           status: Database["public"]["Enums"]["issue_status"]
           title: string
           updated_at: string
@@ -194,6 +195,7 @@ export type Database = {
           position?: number
           priority?: Database["public"]["Enums"]["issue_priority"]
           project_id: string
+          search_vector?: unknown
           status?: Database["public"]["Enums"]["issue_status"]
           title: string
           updated_at?: string
@@ -209,6 +211,7 @@ export type Database = {
           position?: number
           priority?: Database["public"]["Enums"]["issue_priority"]
           project_id?: string
+          search_vector?: unknown
           status?: Database["public"]["Enums"]["issue_status"]
           title?: string
           updated_at?: string
@@ -494,6 +497,31 @@ export type Database = {
         }[]
       }
       redeem_invite: { Args: { invite_code: string }; Returns: string }
+      search_issues: {
+        Args: { q: string; workspace: string }
+        Returns: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          number: number
+          position: number
+          priority: Database["public"]["Enums"]["issue_priority"]
+          project_id: string
+          search_vector: unknown
+          status: Database["public"]["Enums"]["issue_status"]
+          title: string
+          updated_at: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "issues"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       issue_priority: "none" | "low" | "medium" | "high" | "urgent"
