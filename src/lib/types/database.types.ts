@@ -361,7 +361,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
-          code: string
+          code?: string
           created_at?: string
           created_by: string
           email?: string | null
@@ -482,7 +482,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invite_code: { Args: never; Returns: string }
+      get_my_pending_invites: {
+        Args: never
+        Returns: {
+          code: string
+          expires_at: string
+          invite_id: string
+          role: Database["public"]["Enums"]["member_role"]
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
+      redeem_invite: { Args: { invite_code: string }; Returns: string }
     }
     Enums: {
       issue_priority: "none" | "low" | "medium" | "high" | "urgent"

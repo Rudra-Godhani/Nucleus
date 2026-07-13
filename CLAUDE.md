@@ -58,9 +58,37 @@ An open-source issue tracker for teams (Linear/Jira-style). Next.js 16 App Route
   every query fail with "permission denied for function". Safety comes from the function living
   in the unexposed `private` schema and deriving the user from `auth.uid()` internally — not
   from the revoke.
+- **`INSERT ... RETURNING` applies the SELECT policy to the new row.** If the row only becomes
+  visible via an `AFTER INSERT` trigger (as `workspaces` does — the ownership row is created by
+  `on_workspace_created`), the trigger has not fired yet and the insert fails with
+  *"new row violates row-level security policy"*. That message points at `WITH CHECK` and sends
+  you hunting in entirely the wrong place. PostgREST uses `RETURNING` whenever the client chains
+  `.select()`, so this is the normal path from the app. `lib/data/workspaces.ts` inserts without
+  returning and re-reads the row. Guarded by `supabase/tests/004`.
+- **Column defaults execute as the *inserting* role.** `workspace_invites.code` defaults to
+  `private.generate_invite_code()`, so `authenticated` must hold `EXECUTE` on it — revoking
+  EXECUTE (the usual hardening reflex) breaks every invite insert with *"permission denied for
+  function"*. It lives in `private` so it is still not exposed as an RPC endpoint. Guarded by
+  `supabase/tests/003`.
+- **`CREATE FUNCTION` grants `EXECUTE` to `PUBLIC`, and every role inherits from `PUBLIC`.**
+  So `revoke ... from authenticated` alone does nothing. Revoke from `public` first, then grant
+  back to the specific role that needs it.
 - **Views bypass RLS** unless created `WITH (security_invoker = true)`.
 - **Use `getClaims()`** to protect pages — not `getSession()`, which is not guaranteed to
   revalidate the token.
+
+## Known, accepted advisor warnings
+
+`supabase db advisors --linked --type security` reports two `SECURITY DEFINER` functions as
+callable by signed-in users: **`redeem_invite`** and **`get_my_pending_invites`**. That is the
+point of them — they are deliberate RPC endpoints, and `anon` has `EXECUTE` revoked. They bypass
+RLS because a user redeeming an invite is not yet a member and therefore *cannot* see the invite
+row. Both take the user from `auth.uid()` and the workspace/role from the invite, never from the
+caller. See `supabase/tests/003_invite_redemption_rls.sql`. **Do not "fix" these.**
+
+Every other `SECURITY DEFINER` function (the trigger functions) has `EXECUTE` revoked from all
+roles, because Postgres grants it to `PUBLIC` by default and `public` is an API-exposed schema —
+which would otherwise publish them as anon-callable endpoints.
 
 ## Commands
 
