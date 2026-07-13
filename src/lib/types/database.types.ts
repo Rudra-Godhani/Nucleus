@@ -51,11 +51,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activity_issue_id_fkey"
-            columns: ["issue_id"]
+            foreignKeyName: "activity_issue_fkey"
+            columns: ["issue_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "issues"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
             foreignKeyName: "activity_workspace_id_fkey"
@@ -106,11 +106,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "comments_issue_id_fkey"
-            columns: ["issue_id"]
+            foreignKeyName: "comments_issue_fkey"
+            columns: ["issue_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "issues"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
             foreignKeyName: "comments_parent_id_fkey"
@@ -146,18 +146,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "issue_labels_issue_id_fkey"
-            columns: ["issue_id"]
+            foreignKeyName: "issue_labels_issue_fkey"
+            columns: ["issue_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "issues"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
-            foreignKeyName: "issue_labels_label_id_fkey"
-            columns: ["label_id"]
+            foreignKeyName: "issue_labels_label_fkey"
+            columns: ["label_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "labels"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
             foreignKeyName: "issue_labels_workspace_id_fkey"
@@ -216,11 +216,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "issues_assignee_id_fkey"
-            columns: ["assignee_id"]
+            foreignKeyName: "issues_assignee_fkey"
+            columns: ["assignee_id", "workspace_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "workspace_members"
+            referencedColumns: ["user_id", "workspace_id"]
           },
           {
             foreignKeyName: "issues_created_by_fkey"
@@ -230,11 +230,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "issues_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "issues_project_fkey"
+            columns: ["project_id", "workspace_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "workspace_id"]
           },
           {
             foreignKeyName: "issues_workspace_id_fkey"
@@ -482,7 +482,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_invite_code: { Args: never; Returns: string }
       get_my_pending_invites: {
         Args: never
         Returns: {
