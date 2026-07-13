@@ -19,9 +19,23 @@ const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: Number.POSITIVE_INFINITY, unit: "year" },
 ];
 
+/**
+ * Anything this close to now is reported as "now".
+ *
+ * Not cosmetic. `created_at` comes from Postgres's clock and `Date.now()` from
+ * whatever machine renders the page, and those two are never exactly in step — so an
+ * issue filed a moment ago would render as "in 1 second", a timestamp in the future,
+ * which is simply wrong. A window wide enough to absorb ordinary clock skew removes
+ * the whole class of nonsense, and "now" is what a human would have said anyway.
+ */
+const SKEW_WINDOW_SECONDS = 30;
+
 export function formatRelative(iso: string, locale = "en"): string {
   const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   let duration = (new Date(iso).getTime() - Date.now()) / 1000;
+
+  // `numeric: "auto"` renders a zero offset as "now" rather than "in 0 seconds".
+  if (Math.abs(duration) < SKEW_WINDOW_SECONDS) return formatter.format(0, "second");
 
   for (const division of DIVISIONS) {
     if (Math.abs(duration) < division.amount) {

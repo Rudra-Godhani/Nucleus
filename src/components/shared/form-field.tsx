@@ -80,6 +80,75 @@ export function FormField({
 }
 
 /**
+ * The same field, for prose.
+ *
+ * A separate component rather than a `multiline` prop on FormField, because the two
+ * render different elements and mixing them would mean every input prop had to be
+ * typed as the union of `<input>` and `<textarea>` — which types nothing usefully.
+ *
+ * `field-sizing-content` grows the box with what is typed, so a long description is
+ * not read through a three-line porthole.
+ */
+export function FormTextarea({
+  name,
+  label,
+  errors,
+  hint,
+  className,
+  ...textareaProps
+}: {
+  name: string;
+  label: string;
+  errors?: string[];
+  hint?: string;
+} & React.ComponentProps<"textarea">) {
+  const errorId = `${name}-error`;
+  const hintId = `${name}-hint`;
+  const invalid = Boolean(errors?.length);
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={name} className="text-xs font-medium">
+        {label}
+      </Label>
+
+      <textarea
+        id={name}
+        name={name}
+        aria-invalid={invalid || undefined}
+        aria-describedby={
+          [invalid ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined
+        }
+        className={cn(
+          "bg-card border-input field-sizing-content min-h-20 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed",
+          "placeholder:text-muted-foreground/60",
+          "transition-[border-color,box-shadow] duration-150",
+          "focus-visible:border-primary focus-visible:ring-primary/25 focus-visible:ring-[3px] focus-visible:outline-none",
+          invalid &&
+            "border-destructive/60 focus-visible:border-destructive focus-visible:ring-destructive/20",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          className,
+        )}
+        {...textareaProps}
+      />
+
+      {hint && !invalid ? (
+        <p id={hintId} className="text-muted-foreground text-xs">
+          {hint}
+        </p>
+      ) : null}
+
+      {invalid ? (
+        <p id={errorId} className="text-destructive flex items-center gap-1.5 text-xs">
+          <AlertCircle className="size-3 shrink-0" aria-hidden="true" />
+          {errors?.[0]}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * A failure that belongs to the submission as a whole rather than one field.
  *
  * `aria-live="polite"` because this appears *after* the user submits — a screen

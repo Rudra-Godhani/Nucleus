@@ -73,6 +73,10 @@ An open-source issue tracker for teams (Linear/Jira-style). Next.js 16 App Route
 - **`CREATE FUNCTION` grants `EXECUTE` to `PUBLIC`, and every role inherits from `PUBLIC`.**
   So `revoke ... from authenticated` alone does nothing. Revoke from `public` first, then grant
   back to the specific role that needs it.
+- **PostgREST reloads its schema cache after a migration, and RPCs 404 while it does.**
+  For a few seconds after `supabase db push`, an unrelated call can fail with *"Could not find
+  the function public.x without parameters in the schema cache"*. Nothing is broken and no fix is
+  needed — reload the page. Only start debugging if it survives a retry.
 - **Views bypass RLS** unless created `WITH (security_invoker = true)`.
 - **Use `getClaims()`** to protect pages — not `getSession()`, which is not guaranteed to
   revalidate the token.

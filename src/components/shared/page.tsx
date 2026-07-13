@@ -15,8 +15,16 @@ export function PageShell({
   className,
 }: {
   children: React.ReactNode;
-  /** narrow: forms · default: lists and detail · wide: boards */
-  size?: "narrow" | "default" | "wide";
+  /**
+   * narrow: forms · default: prose and detail · list: dense rows · wide: boards
+   *
+   * `list` exists because an issue row is not prose. It carries a title, labels, a
+   * date and an assignee on one line, and at the `default` measure the title —
+   * the only column anyone actually reads — is the one that gets truncated to make
+   * room for the rest. Given the full `wide` measure instead, the title sprawls and
+   * the metadata is stranded against the far edge. This sits between the two.
+   */
+  size?: "narrow" | "default" | "list" | "wide";
   className?: string;
 }) {
   return (
@@ -25,6 +33,7 @@ export function PageShell({
         "mx-auto w-full px-5 py-10 sm:px-8 sm:py-14",
         size === "narrow" && "max-w-lg",
         size === "default" && "max-w-3xl",
+        size === "list" && "max-w-5xl",
         size === "wide" && "max-w-7xl",
         className,
       )}

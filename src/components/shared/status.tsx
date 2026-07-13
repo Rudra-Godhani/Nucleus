@@ -5,6 +5,27 @@ type IssueStatus = Database["public"]["Enums"]["issue_status"];
 type IssuePriority = Database["public"]["Enums"]["issue_priority"];
 
 /**
+ * The order every status control lists them in: the order work moves through, not
+ * alphabetical. The board's columns are these, left to right.
+ */
+export const ISSUE_STATUSES: readonly IssueStatus[] = [
+  "backlog",
+  "todo",
+  "in_progress",
+  "done",
+  "canceled",
+];
+
+/** Loudest first — a priority menu is opened to escalate far more often than to de-escalate. */
+export const ISSUE_PRIORITIES: readonly IssuePriority[] = [
+  "urgent",
+  "high",
+  "medium",
+  "low",
+  "none",
+];
+
+/**
  * Status, drawn as a progress ring rather than a coloured dot.
  *
  * A dot only carries meaning once you have learned the colour key. A ring that

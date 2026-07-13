@@ -190,7 +190,7 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
-          number: number
+          number?: number
           position?: number
           priority?: Database["public"]["Enums"]["issue_priority"]
           project_id: string
