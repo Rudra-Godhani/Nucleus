@@ -18,7 +18,12 @@ export function EmptyState({
 }: {
   icon?: LucideIcon;
   title: string;
-  description?: string;
+  /**
+   * ReactNode, not string — identifiers like `MA-1` must be wrapped in a
+   * `whitespace-nowrap` span or the line break lands on the hyphen and the
+   * identifier is split in half.
+   */
+  description?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
 }) {
@@ -31,7 +36,7 @@ export function EmptyState({
     >
       {Icon ? (
         <div className="bg-muted text-muted-foreground mb-4 flex size-10 items-center justify-center rounded-lg">
-          <Icon className="size-[18px]" aria-hidden="true" />
+          <Icon className="size-4.5" aria-hidden="true" />
         </div>
       ) : null}
 

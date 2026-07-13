@@ -80,6 +80,8 @@ export function InviteForm({ workspaceId, slug }: { workspaceId: string; slug: s
             autoComplete="off"
             spellCheck={false}
             hint="Only this address can accept. They will see it when they sign in."
+            // Echoed back so a failed submit does not erase the address.
+            defaultValue={state.values?.email ?? ""}
             errors={state.fieldErrors?.email}
           />
 

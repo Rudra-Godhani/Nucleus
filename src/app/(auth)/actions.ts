@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { signIn, signOut, signUp } from "@/lib/data/auth";
 import { signInSchema, signUpSchema } from "@/lib/validations/auth";
+import { formValues } from "@/app/(app)/form-utils";
 
 /**
  * Server Actions for auth.
@@ -13,13 +14,19 @@ import { signInSchema, signUpSchema } from "@/lib/validations/auth";
  */
 
 /**
- * What the form gets back. `fieldErrors` is keyed by field name so each input
- * can render its own message; `formError` is for failures that belong to the
+ * What the form gets back. `fieldErrors` is keyed by field name so each input can
+ * render its own message; `formError` is for failures that belong to the
  * submission as a whole (bad credentials, provider outage).
+ *
+ * `values` echoes the submission back. React 19 resets an uncontrolled form once
+ * its action completes — including when it failed — so without this, a wrong
+ * password would also wipe the email address the user had just typed. `formValues`
+ * deliberately never echoes a password field.
  */
 export type AuthFormState = {
   fieldErrors?: Record<string, string[]>;
   formError?: string;
+  values?: Record<string, string>;
 };
 
 /**
@@ -44,11 +51,11 @@ export async function signUpAction(
   });
 
   if (!parsed.success) {
-    return { fieldErrors: parsed.error.flatten().fieldErrors };
+    return { fieldErrors: parsed.error.flatten().fieldErrors, values: formValues(formData) };
   }
 
   const result = await signUp(parsed.data);
-  if (!result.ok) return { formError: result.message };
+  if (!result.ok) return { formError: result.message, values: formValues(formData) };
 
   // `redirect` throws internally to unwind — it must be outside any try/catch.
   redirect(safeRedirectTarget(formData.get("next")));
@@ -64,11 +71,11 @@ export async function signInAction(
   });
 
   if (!parsed.success) {
-    return { fieldErrors: parsed.error.flatten().fieldErrors };
+    return { fieldErrors: parsed.error.flatten().fieldErrors, values: formValues(formData) };
   }
 
   const result = await signIn(parsed.data);
-  if (!result.ok) return { formError: result.message };
+  if (!result.ok) return { formError: result.message, values: formValues(formData) };
 
   redirect(safeRedirectTarget(formData.get("next")));
 }

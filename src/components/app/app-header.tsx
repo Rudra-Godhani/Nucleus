@@ -42,6 +42,9 @@ export function AppHeader({
 
   const tabs = slug
     ? [
+        // `exact` on Overview only. Without it, Overview would light up on every
+        // page under /w/<slug>, including the project pages, and two tabs would
+        // claim to be current at once.
         { href: `/w/${slug}`, label: "Overview", exact: true },
         { href: `/w/${slug}/members`, label: "Members", exact: false },
       ]
@@ -77,7 +80,7 @@ export function AppHeader({
         */}
         <nav
           aria-label="Workspace"
-          className="ml-2 flex h-full min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto"
+          className="no-scrollbar ml-2 flex h-full min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto"
         >
           {tabs.map((tab) => {
             const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);

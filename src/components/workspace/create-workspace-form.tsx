@@ -32,11 +32,15 @@ export function CreateWorkspaceForm() {
     <form ref={formRef} action={formAction} className="space-y-4" noValidate>
       <FormError message={state.formError} />
 
+      {/* Echoed back from the failed submission — React 19 resets an uncontrolled
+          form after its action runs, so without this a taken-URL error would also
+          erase the name the user typed. */}
       <FormField
         name="name"
         label="Workspace Name"
         placeholder="Acme Corp"
         autoComplete="off"
+        defaultValue={state.values?.name ?? ""}
         errors={state.fieldErrors?.name}
         onChange={(e) => {
           if (!slugTouched) setSlug(slugify(e.target.value));

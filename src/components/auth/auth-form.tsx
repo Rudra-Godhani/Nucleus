@@ -65,6 +65,12 @@ export function AuthForm({
             hint={field.hint}
             // Autocorrect on an email field is actively hostile.
             spellCheck={field.type === "email" ? false : undefined}
+            // React 19 resets an uncontrolled form after its action runs, even on
+            // failure — so without echoing the submission back, a typo in the
+            // password would also wipe the email the user had just typed. Passwords
+            // are deliberately never echoed (see `formValues`), so they are always
+            // retyped, which is the correct trade.
+            defaultValue={state.values?.[field.name] ?? ""}
             errors={state.fieldErrors?.[field.name]}
           />
         ))}

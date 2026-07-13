@@ -296,6 +296,19 @@
     animation-delay: calc(var(--i, 0) * 55ms);
   }
 
+  /* Scrollable, but without the scrollbar drawn.
+     The header's tab strip has to scroll on a narrow screen, but a grey scrollbar
+     painted across the chrome is worse than the overflow it solves. The content is
+     still reachable by swipe, wheel and keyboard — this hides the bar, not the
+     scrolling. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* A hairline that fades at the ends — used under the app header so the rule
      does not visually box the page in. */
   .rule-fade {

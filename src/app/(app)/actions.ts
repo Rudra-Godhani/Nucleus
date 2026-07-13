@@ -16,54 +16,23 @@ import {
   redeemInviteSchema,
   removeMemberSchema,
 } from "@/lib/validations/workspace";
+import {
+  formValues,
+  optionalField,
+  withFallbackError,
+  type FormState,
+} from "@/app/(app)/form-utils";
 
 /**
  * Workspace mutations. These validate, delegate to the data layer, and decide
  * what to revalidate. No Supabase calls live here — ESLint enforces that.
+ *
+ * `FormState` and the form helpers live in `form-utils.ts` rather than here: a
+ * `"use server"` file may only export async functions, because every export
+ * becomes a callable server endpoint.
  */
 
-export type FormState = {
-  fieldErrors?: Record<string, string[]>;
-  formError?: string;
-  /** Set on success, so the UI can show confirmation without a round trip. */
-  success?: string;
-};
-
-/**
- * A form field that may not be in the DOM at all.
- *
- * `FormData.get()` returns `null` for a missing field and `""` for one that is
- * present but blank. Zod treats both as values rather than absence, so an
- * `.optional()` field still fails validation when handed a `null`. Normalising to
- * `undefined` is what makes "optional" actually mean optional.
- */
-function optionalField(value: FormDataEntryValue | null): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return trimmed === "" ? undefined : trimmed;
-}
-
-/**
- * Guarantees that a validation failure is always visible.
- *
- * A field error can only be rendered next to a field that is on screen — and a
- * form with tabs (or any conditional field) can produce an error for a field the
- * user cannot see. That happened here: the invite form's "Shareable Link" tab has
- * no email input, the schema rejected the resulting `null`, and the error had
- * nowhere to render. The button simply did nothing, with no message and no clue —
- * the worst failure mode a form has.
- *
- * So if a submission fails, always surface at least one message at form level.
- */
-function withFallbackError(fieldErrors: Record<string, string[] | undefined>): FormState {
-  const messages = Object.values(fieldErrors).flatMap((errs) => errs ?? []);
-  if (messages.length === 0) return {};
-
-  return {
-    fieldErrors: fieldErrors as Record<string, string[]>,
-    formError: messages[0],
-  };
-}
+export type { FormState } from "@/app/(app)/form-utils";
 
 export async function createWorkspaceAction(
   _prev: FormState,
@@ -75,11 +44,11 @@ export async function createWorkspaceAction(
   });
 
   if (!parsed.success) {
-    return withFallbackError(parsed.error.flatten().fieldErrors);
+    return withFallbackError(parsed.error.flatten().fieldErrors, formData);
   }
 
   const result = await createWorkspace(parsed.data);
-  if (!result.ok) return { formError: result.message };
+  if (!result.ok) return { formError: result.message, values: formValues(formData) };
 
   // redirect() throws to unwind, so it must sit outside any try/catch.
   redirect(`/w/${result.workspace.slug}`);
@@ -100,11 +69,11 @@ export async function createInviteAction(
   });
 
   if (!parsed.success) {
-    return withFallbackError(parsed.error.flatten().fieldErrors);
+    return withFallbackError(parsed.error.flatten().fieldErrors, formData);
   }
 
   const result = await createInvite(parsed.data);
-  if (!result.ok) return { formError: result.message };
+  if (!result.ok) return { formError: result.message, values: formValues(formData) };
 
   // Revalidate only on success. Doing it before checking `result.ok` would
   // re-render the page underneath a failed submission and throw away the error
@@ -136,11 +105,11 @@ export async function redeemInviteAction(
   const parsed = redeemInviteSchema.safeParse({ code: formData.get("code") });
 
   if (!parsed.success) {
-    return withFallbackError(parsed.error.flatten().fieldErrors);
+    return withFallbackError(parsed.error.flatten().fieldErrors, formData);
   }
 
   const result = await redeemInvite(parsed.data.code);
-  if (!result.ok) return { formError: result.message };
+  if (!result.ok) return { formError: result.message, values: formValues(formData) };
 
   redirect(`/w/${result.slug}`);
 }
