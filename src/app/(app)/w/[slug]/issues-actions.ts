@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createIssue, deleteIssue, setIssueStatus, updateIssue } from "@/lib/data/issues";
+import { createIssue, deleteIssue, moveIssue, updateIssue } from "@/lib/data/issues";
 import { createLabel, deleteLabel } from "@/lib/data/labels";
 import {
   createIssueSchema,
   createLabelSchema,
   deleteIssueSchema,
   deleteLabelSchema,
-  setIssueStatusSchema,
+  moveIssueSchema,
   updateIssueSchema,
 } from "@/lib/validations/issue";
 import {
@@ -95,26 +95,32 @@ export async function updateIssueAction(
 }
 
 /**
- * Move an issue to a status.
+ * A card dropped on the board.
  *
- * Returns void rather than form state: this is fired from a menu and from the board
- * (Step 7), where there is no form to report back into. Failures surface as a
- * thrown error, which the route's error boundary catches.
+ * Takes plain arguments rather than a FormData, because there is no form here: the
+ * caller is a drag handler. It still validates — a Server Action is a public HTTP
+ * endpoint whatever the call site looks like, and "our own component passes the
+ * right shape" is not a security property.
+ *
+ * Every board watching this project learns about the move through the broadcast
+ * trigger on `issues`, so no revalidation of anyone else's page is needed — or
+ * possible.
  */
-export async function setIssueStatusAction(formData: FormData): Promise<void> {
-  const parsed = setIssueStatusSchema.safeParse({
-    issueId: formData.get("issueId"),
-    status: formData.get("status"),
-  });
-  if (!parsed.success) return;
-
-  await setIssueStatus(parsed.data.issueId, parsed.data.status);
-
-  const slug = formData.get("slug");
-  const projectKey = formData.get("projectKey");
-  if (typeof slug === "string" && typeof projectKey === "string") {
-    revalidatePath(`/w/${slug}/p/${projectKey}`, "page");
+export async function moveIssueAction(input: {
+  issueId: string;
+  status: string;
+  position: number;
+  slug: string;
+  projectKey: string;
+}): Promise<void> {
+  const parsed = moveIssueSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error("That is not a move this board can make.");
   }
+
+  await moveIssue(parsed.data);
+
+  revalidatePath(`/w/${input.slug}/p/${input.projectKey}`, "page");
 }
 
 export async function deleteIssueAction(formData: FormData): Promise<void> {

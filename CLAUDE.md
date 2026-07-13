@@ -15,8 +15,9 @@ An open-source issue tracker for teams (Linear/Jira-style). Next.js 16 App Route
 |---|---|
 | `src/app/` | Routes. Server Components by default. |
 | `src/components/` | UI. `ui/` is shadcn primitives; the rest is feature UI. Dumb — no data access. |
-| `src/lib/data/` | **The only place Supabase is queried.** Named functions, one file per entity. |
-| `src/lib/supabase/` | Client factories (`server.ts`, `client.ts`). Used only by `lib/data/`. |
+| `src/lib/data/` | **Where Supabase is queried.** REST, on the server. Named functions, one file per entity. |
+| `src/lib/realtime/` | **The other door.** Websocket, in the browser — so it cannot be `server-only` and cannot live in `lib/data`. Nothing else may open a channel. |
+| `src/lib/supabase/` | Client factories (`server.ts`, `client.ts`). Used only by `lib/data/` and `lib/realtime/`. |
 | `src/lib/validations/` | Zod schemas, one file per entity. Every input boundary parses here. |
 | `src/lib/types/database.types.ts` | Generated from the schema. Never hand-edit. |
 | `src/proxy.ts` | Session refresh only (Next 16 renamed Middleware → Proxy). |
@@ -77,6 +78,14 @@ An open-source issue tracker for teams (Linear/Jira-style). Next.js 16 App Route
   For a few seconds after `supabase db push`, an unrelated call can fail with *"Could not find
   the function public.x without parameters in the schema cache"*. Nothing is broken and no fix is
   needed — reload the page. Only start debugging if it survives a retry.
+- **Realtime is a second way out of the database, and REST policies do not cover it.** A private
+  channel is authorized by RLS on `realtime.messages` — a table we do not own. Supabase's own
+  broadcast-from-database docs give the policy as `using (true)`, which in a multi-tenant app
+  hands every signed-in user every message on every topic, full row payloads included. Naming a
+  topic is not a secret; the project id is in the URL. The real policy resolves the topic back to
+  a project and demands membership, and it must compare the row's **own** `topic` column — the
+  membership check reads `realtime.topic()`, a session setting, so without that comparison the
+  predicate does not depend on the row at all. Guarded by `supabase/tests/007`.
 - **Views bypass RLS** unless created `WITH (security_invoker = true)`.
 - **Use `getClaims()`** to protect pages — not `getSession()`, which is not guaranteed to
   revalidate the token.

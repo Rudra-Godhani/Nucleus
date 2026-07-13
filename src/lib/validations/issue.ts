@@ -63,10 +63,19 @@ export const updateIssueSchema = z.object({
   labelIds: z.array(z.uuid()).default([]),
 });
 
-/** Used by the board (Step 7) and the inline status control on a list row. */
-export const setIssueStatusSchema = z.object({
+/**
+ * A card dropped on the board.
+ *
+ * Status and position together, because a drop changes both: which column it landed
+ * in, and where in that column. `position` is fractional — see `moveIssue`.
+ */
+export const moveIssueSchema = z.object({
   issueId: z.uuid(),
   status: issueStatusSchema,
+  // `finite` matters: the position is computed in the browser, and NaN or Infinity
+  // would otherwise reach a `double precision` column and corrupt the column's order
+  // for good.
+  position: z.number().finite(),
 });
 
 export const deleteIssueSchema = z.object({
@@ -124,5 +133,6 @@ export const deleteLabelSchema = z.object({
 
 export type CreateIssueInput = z.infer<typeof createIssueSchema>;
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>;
+export type MoveIssueInput = z.infer<typeof moveIssueSchema>;
 export type IssueFilters = z.infer<typeof issueFiltersSchema>;
 export type CreateLabelInput = z.infer<typeof createLabelSchema>;

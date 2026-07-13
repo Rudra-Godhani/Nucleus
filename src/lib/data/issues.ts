@@ -6,6 +6,7 @@ import type { Database } from "@/lib/types/database.types";
 import type {
   CreateIssueInput,
   IssueFilters,
+  MoveIssueInput,
   UpdateIssueInput,
 } from "@/lib/validations/issue";
 
@@ -266,14 +267,27 @@ async function setIssueLabels(
 }
 
 /**
- * Move an issue to a status. Used by the board's drag-and-drop (Step 7) and by the
- * status control on a list row.
+ * Move an issue: which column, and where in it. This is what a drop on the board is.
+ *
+ * `position` is a fraction, not an index. Dropping a card between two others writes
+ * ONE row — the midpoint of its new neighbours — where an index would mean
+ * renumbering every card below it, which is a write per card and a race with anyone
+ * else dragging in the same column.
+ *
+ * The cost is that repeatedly splitting the same gap eventually exhausts the
+ * precision of a double (about fifty halvings). At that point positions would need
+ * rebalancing; a board that has been dragged fifty times into one identical slot is
+ * not a problem this app has, and pretending to solve it would cost more than it saves.
  */
-export async function setIssueStatus(issueId: string, status: IssueStatus): Promise<void> {
+export async function moveIssue(input: MoveIssueInput): Promise<void> {
   await requireUser();
   const supabase = await createClient();
 
-  const { error } = await supabase.from("issues").update({ status }).eq("id", issueId);
+  const { error } = await supabase
+    .from("issues")
+    .update({ status: input.status, position: input.position })
+    .eq("id", input.issueId);
+
   if (error) throw new Error(`Failed to move issue: ${error.message}`);
 }
 
