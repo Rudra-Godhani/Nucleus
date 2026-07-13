@@ -1,14 +1,18 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getWorkspaceBySlug } from "@/lib/data/workspaces";
 
 /**
- * Shell for a single workspace.
+ * Workspace scope guard.
  *
- * `getWorkspaceBySlug` returns null both when the slug does not exist and when
- * the caller is not a member — RLS makes them indistinguishable — so a non-member
- * gets a plain 404 rather than a "forbidden" that would confirm the workspace is
- * real. That is the intended behaviour, not an accident of error handling.
+ * There is no chrome here any more — navigation moved into the app header, so
+ * this layout's only job is to establish that the workspace exists and the caller
+ * is a member of it.
+ *
+ * `getWorkspaceBySlug` returns null both when the slug does not exist and when the
+ * caller is not a member; RLS makes the two indistinguishable. A non-member
+ * therefore gets a plain 404 rather than a "forbidden" that would confirm the
+ * workspace is real. That is the intended behaviour, not an accident of error
+ * handling.
  */
 export default async function WorkspaceLayout({
   children,
@@ -22,26 +26,5 @@ export default async function WorkspaceLayout({
 
   if (!workspace) notFound();
 
-  return (
-    <div className="flex min-h-full flex-col">
-      <div className="border-border/60 flex h-11 shrink-0 items-center gap-1 border-b px-4">
-        <span className="mr-3 text-sm font-medium">{workspace.name}</span>
-        <WorkspaceTab href={`/w/${slug}`}>Overview</WorkspaceTab>
-        <WorkspaceTab href={`/w/${slug}/members`}>Members</WorkspaceTab>
-      </div>
-
-      {children}
-    </div>
-  );
-}
-
-function WorkspaceTab({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-2.5 py-1 text-sm transition-colors"
-    >
-      {children}
-    </Link>
-  );
+  return <>{children}</>;
 }

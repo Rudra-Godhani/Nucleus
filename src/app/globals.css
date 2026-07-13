@@ -4,127 +4,307 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===========================================================================
+   NUCLEUS DESIGN SYSTEM
+   ---------------------------------------------------------------------------
+   The aesthetic is a precision instrument: dense, exact, quiet. Every value
+   below is a decision, not a default.
+
+   - Two surfaces, not a ramp of greys. `background` is the canvas; `card` sits
+     one step above it. Anything needing a third level uses a border, not
+     another fill — stacked greys are how interfaces turn to mud.
+   - One accent (ember). It marks the primary action and nothing else, so it
+     never has to compete with itself for attention.
+   - Status colour is a separate axis from brand colour. An issue's state must
+     read the same whether or not it sits next to a button.
+   - Hairline borders at low alpha, not solid greys. They describe an edge
+     without drawing one.
+   =========================================================================== */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Issue status — the product's real colour language. */
+  --color-status-backlog: var(--status-backlog);
+  --color-status-todo: var(--status-todo);
+  --color-status-progress: var(--status-progress);
+  --color-status-done: var(--status-done);
+  --color-status-canceled: var(--status-canceled);
+
+  /* Priority — deliberately quieter than status. Priority is a whisper; status
+     is the headline. Giving them equal weight makes a board unreadable. */
+  --color-priority-urgent: var(--priority-urgent);
+  --color-priority-high: var(--priority-high);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-low: var(--priority-low);
+
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* A tight radius scale. Large radii read as "friendly consumer app"; this is
+     a tool, and the geometry should feel machined. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+
+  --ease-out-quart: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* --------------------------------------------------------------------------
+   Light — "paper". Warm off-white, not #fff: a pure white canvas next to a
+   pure white card gives you no elevation to work with.
+   -------------------------------------------------------------------------- */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Base radius. Some shadcn primitives read `--radius` directly rather than the
+     scale above, so it has to exist as well. Matches --radius-lg. */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --background: oklch(0.985 0.003 85);
+  --foreground: oklch(0.19 0.009 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+
+  /* Ember. The nucleus. */
+  --primary: oklch(0.585 0.196 34);
+  --primary-foreground: oklch(0.99 0.005 60);
+
+  --secondary: oklch(0.955 0.004 85);
+  --secondary-foreground: oklch(0.26 0.009 265);
+
+  --muted: oklch(0.955 0.004 85);
+  --muted-foreground: oklch(0.505 0.012 265);
+
+  --accent: oklch(0.945 0.005 85);
+  --accent-foreground: oklch(0.22 0.009 265);
+
+  --destructive: oklch(0.555 0.208 26);
+  --destructive-foreground: oklch(0.99 0.005 60);
+  --success: oklch(0.54 0.13 158);
+  --success-foreground: oklch(0.99 0.005 60);
+
+  --border: oklch(0.19 0.009 265 / 0.1);
+  --border-strong: oklch(0.19 0.009 265 / 0.18);
+  --input: oklch(0.19 0.009 265 / 0.14);
+  --ring: var(--primary);
+
+  --status-backlog: oklch(0.6 0.015 265);
+  --status-todo: oklch(0.55 0.13 250);
+  --status-progress: oklch(0.66 0.15 75);
+  --status-done: oklch(0.55 0.14 155);
+  --status-canceled: oklch(0.62 0.02 265);
+
+  --priority-urgent: oklch(0.575 0.2 26);
+  --priority-high: oklch(0.63 0.16 55);
+  --priority-medium: oklch(0.66 0.12 95);
+  --priority-low: oklch(0.6 0.02 265);
+
+  --elevation-xs: 0 1px 2px 0 oklch(0.19 0.009 265 / 0.05);
+  --elevation-sm:
+    0 1px 2px -1px oklch(0.19 0.009 265 / 0.08), 0 2px 6px -1px oklch(0.19 0.009 265 / 0.06);
+  --elevation-md:
+    0 2px 4px -2px oklch(0.19 0.009 265 / 0.08), 0 8px 20px -4px oklch(0.19 0.009 265 / 0.1);
+  --elevation-lg:
+    0 4px 8px -4px oklch(0.19 0.009 265 / 0.1), 0 16px 40px -8px oklch(0.19 0.009 265 / 0.14);
+
+  color-scheme: light;
 }
 
+/* --------------------------------------------------------------------------
+   Dark — "instrument". Cool near-black. Not #000: true black kills elevation
+   and, on OLED, makes every scroll smear.
+   -------------------------------------------------------------------------- */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.155 0.008 267);
+  --foreground: oklch(0.955 0.004 85);
+
+  --card: oklch(0.192 0.009 267);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.205 0.009 267);
+  --popover-foreground: var(--foreground);
+
+  /* Lifted and slightly desaturated: the same ember at light-mode chroma
+     vibrates against a dark canvas. */
+  --primary: oklch(0.665 0.185 35);
+  --primary-foreground: oklch(0.16 0.02 35);
+
+  --secondary: oklch(0.245 0.009 267);
+  --secondary-foreground: oklch(0.955 0.004 85);
+
+  --muted: oklch(0.235 0.009 267);
+  --muted-foreground: oklch(0.66 0.014 267);
+
+  --accent: oklch(0.255 0.01 267);
+  --accent-foreground: oklch(0.965 0.004 85);
+
+  --destructive: oklch(0.645 0.19 25);
+  --destructive-foreground: oklch(0.16 0.02 25);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.16 0.03 158);
+
+  --border: oklch(1 0 0 / 0.09);
+  --border-strong: oklch(1 0 0 / 0.16);
+  --input: oklch(1 0 0 / 0.13);
+  --ring: var(--primary);
+
+  --status-backlog: oklch(0.62 0.015 267);
+  --status-todo: oklch(0.68 0.13 250);
+  --status-progress: oklch(0.78 0.15 78);
+  --status-done: oklch(0.7 0.15 155);
+  --status-canceled: oklch(0.55 0.02 267);
+
+  --priority-urgent: oklch(0.665 0.19 26);
+  --priority-high: oklch(0.72 0.15 55);
+  --priority-medium: oklch(0.78 0.12 95);
+  --priority-low: oklch(0.6 0.02 267);
+
+  --elevation-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --elevation-sm: 0 1px 2px -1px oklch(0 0 0 / 0.4), 0 2px 6px -1px oklch(0 0 0 / 0.3);
+  --elevation-md: 0 2px 4px -2px oklch(0 0 0 / 0.4), 0 8px 20px -4px oklch(0 0 0 / 0.45);
+  --elevation-lg: 0 4px 8px -4px oklch(0 0 0 / 0.5), 0 16px 40px -8px oklch(0 0 0 / 0.55);
+
+  color-scheme: dark;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
     @apply font-sans;
+    /* Stops iOS inflating text in landscape without disabling user zoom. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Removes the 300ms tap delay without blocking pinch-zoom. */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* One focus treatment for the whole app. `:focus-visible`, never `:focus`, so
+     a mouse click does not leave a ring behind. */
+  :focus-visible {
+    @apply ring-ring/70 ring-offset-background rounded-[3px] ring-2 ring-offset-2 outline-none;
+  }
+
+  /* Headings should not leave a single orphaned word on the last line. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Digits that sit in columns (counts, dates, issue numbers) must not jitter
+     as they change. */
+  .tabular,
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Native controls need explicit colours or Windows dark mode paints them
+     white-on-white. */
+  select,
+  option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 28%, transparent);
+  }
+
+  /* Honour the OS setting. Not "reduce the animation" — remove it. Someone who
+     sets this may be doing so because motion makes them ill. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* The page-load reveal. One orchestrated entrance beats a dozen scattered
+     micro-animations — and it is the cheapest possible way to make an app feel
+     considered. transform + opacity only, so it stays on the compositor. */
+  @keyframes nucleus-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-rise {
+    animation: nucleus-rise 0.5s var(--ease-out-quart) both;
+  }
+
+  /* Stagger children by index. Set `--i` on the child. */
+  .stagger > * {
+    animation: nucleus-rise 0.5s var(--ease-out-quart) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+
+  /* A hairline that fades at the ends — used under the app header so the rule
+     does not visually box the page in. */
+  .rule-fade {
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--border-strong) 12%,
+      var(--border-strong) 88%,
+      transparent
+    );
   }
 }

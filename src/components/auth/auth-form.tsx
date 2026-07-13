@@ -1,15 +1,11 @@
 "use client";
 
-// 'use client' because this form needs useActionState/useFormStatus to render
-// per-field errors and a pending state without a full page reload. The pages
-// that render it stay Server Components.
+// 'use client': useActionState for inline errors and pending state, plus an
+// effect that moves focus to the first invalid field after a failed submit.
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormError, FormField, SubmitButton } from "@/components/shared/form-field";
 import type { AuthFormState } from "@/app/(auth)/actions";
 
 type Field = {
@@ -18,29 +14,8 @@ type Field = {
   type: "text" | "email" | "password";
   autoComplete: string;
   placeholder?: string;
+  hint?: string;
 };
-
-type AuthFormProps = {
-  action: (state: AuthFormState, formData: FormData) => Promise<AuthFormState>;
-  fields: Field[];
-  submitLabel: string;
-  pendingLabel: string;
-  /** Where to send the user after success. Validated server-side. */
-  next?: string;
-  footer: { prompt: string; linkText: string; href: string };
-};
-
-function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
-  // useFormStatus must be called from a component *inside* the form, not the one
-  // that renders it — hence the separate component.
-  const { pending } = useFormStatus();
-
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? pendingLabel : label}
-    </Button>
-  );
-}
 
 export function AuthForm({
   action,
@@ -49,52 +24,62 @@ export function AuthForm({
   pendingLabel,
   next,
   footer,
-}: AuthFormProps) {
+}: {
+  action: (state: AuthFormState, formData: FormData) => Promise<AuthFormState>;
+  fields: Field[];
+  submitLabel: string;
+  pendingLabel: string;
+  next?: string;
+  footer: { prompt: string; linkText: string; href: string };
+}) {
   const [state, formAction] = useActionState(action, {});
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Move focus to the first field that failed. Without this, a keyboard or
+  // screen-reader user submits, focus stays on the button, and nothing announces
+  // that anything went wrong — the form simply appears to do nothing.
+  useEffect(() => {
+    const firstInvalid = fields.find((f) => state.fieldErrors?.[f.name]);
+    if (!firstInvalid) return;
+
+    formRef.current
+      ?.querySelector<HTMLInputElement>(`[name="${firstInvalid.name}"]`)
+      ?.focus();
+  }, [state, fields]);
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-5" noValidate>
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
-      {state.formError ? (
-        <p
-          role="alert"
-          className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {state.formError}
-        </p>
-      ) : null}
+      <FormError message={state.formError} />
 
-      {fields.map((field) => {
-        const errors = state.fieldErrors?.[field.name];
-        const errorId = `${field.name}-error`;
+      <div className="space-y-4">
+        {fields.map((field) => (
+          <FormField
+            key={field.name}
+            name={field.name}
+            label={field.label}
+            type={field.type}
+            autoComplete={field.autoComplete}
+            placeholder={field.placeholder}
+            hint={field.hint}
+            // Autocorrect on an email field is actively hostile.
+            spellCheck={field.type === "email" ? false : undefined}
+            errors={state.fieldErrors?.[field.name]}
+          />
+        ))}
+      </div>
 
-        return (
-          <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label}</Label>
-            <Input
-              id={field.name}
-              name={field.name}
-              type={field.type}
-              autoComplete={field.autoComplete}
-              placeholder={field.placeholder}
-              aria-invalid={errors ? true : undefined}
-              aria-describedby={errors ? errorId : undefined}
-            />
-            {errors ? (
-              <p id={errorId} className="text-destructive text-sm">
-                {errors[0]}
-              </p>
-            ) : null}
-          </div>
-        );
-      })}
-
-      <SubmitButton label={submitLabel} pendingLabel={pendingLabel} />
+      <SubmitButton pendingLabel={pendingLabel} className="w-full">
+        {submitLabel}
+      </SubmitButton>
 
       <p className="text-muted-foreground text-center text-sm">
         {footer.prompt}{" "}
-        <Link href={footer.href} className="text-foreground underline underline-offset-4">
+        <Link
+          href={footer.href}
+          className="text-foreground hover:text-primary rounded font-medium underline-offset-4 transition-colors hover:underline"
+        >
           {footer.linkText}
         </Link>
       </p>

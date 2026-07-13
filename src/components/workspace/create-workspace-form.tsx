@@ -1,39 +1,40 @@
 "use client";
 
-// 'use client': the slug field auto-fills from the name as you type, and the form
-// renders per-field validation errors — both need state.
+// 'use client': the URL field derives from the name as you type, and the form
+// renders per-field errors.
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createWorkspaceAction, type FormState } from "@/app/(app)/actions";
 import { FormError, FormField, SubmitButton } from "@/components/shared/form-field";
-
-/**
- * Turns "Acme Corp!" into "acme-corp". This is a *convenience* only — the server
- * re-validates with the same rules as the database CHECK constraint, so a user
- * who edits the field by hand cannot get a bad slug through.
- */
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 50);
-}
+// The same slugify the server falls back to. Importing it rather than repeating
+// it means the URL previewed here is always the URL that gets created.
+import { slugify } from "@/lib/validations/workspace";
 
 export function CreateWorkspaceForm() {
   const [state, formAction] = useActionState<FormState, FormData>(createWorkspaceAction, {});
   const [slug, setSlug] = useState("");
-  // Once the user edits the slug themselves, stop overwriting their choice.
+  // Once the user edits the URL themselves, stop overwriting their choice —
+  // silently rewriting what someone just typed is maddening.
   const [slugTouched, setSlugTouched] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const firstInvalid = state.fieldErrors?.name
+      ? "name"
+      : state.fieldErrors?.slug
+        ? "slug"
+        : null;
+    if (!firstInvalid) return;
+    formRef.current?.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
+  }, [state]);
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-4" noValidate>
       <FormError message={state.formError} />
 
       <FormField
         name="name"
-        label="Workspace name"
+        label="Workspace Name"
         placeholder="Acme Corp"
         autoComplete="off"
         errors={state.fieldErrors?.name}
@@ -46,7 +47,12 @@ export function CreateWorkspaceForm() {
         name="slug"
         label="URL"
         value={slug}
-        hint={slug ? `nucleus.app/w/${slug}` : "Lowercase letters, numbers and dashes."}
+        spellCheck={false}
+        autoComplete="off"
+        // Shows the real thing they are about to create, not an abstract rule.
+        // Left blank, the server derives it from the name — so this is a preview,
+        // not a required field.
+        hint={slug ? `/w/${slug}` : "Optional — we'll build one from the name."}
         errors={state.fieldErrors?.slug}
         onChange={(e) => {
           setSlugTouched(true);
@@ -55,7 +61,7 @@ export function CreateWorkspaceForm() {
       />
 
       <SubmitButton pendingLabel="Creating…" className="w-full">
-        Create workspace
+        Create Workspace
       </SubmitButton>
     </form>
   );
